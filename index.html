@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kök Şifresi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+            color: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(0,0,0,0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(0,0,0,0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 300;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #2c2c2c 0%, #000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.7;
+            opacity: 0.85;
+            margin-bottom: 30px;
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .info-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-weight: bold;
+        }
+
+        .info-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .github-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-decoration: none;
+        }
+
+        .github-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .github-icon {
+            width: 22px;
+            height: 22px;
+            fill: white;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .modal h3 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+            text-align: center;
+            font-weight: 300;
+        }
+
+        .modal p {
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            padding: 18px 25px;
+            font-size: 1.2rem;
+            border: 2px solid #333;
+            background: white;
+            width: 350px;
+            text-align: center;
+            outline: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Georgia', serif;
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        input[type="text"]:focus {
+            border-color: #000;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 0 0 1px #000;
+            transform: translateY(-1px);
+        }
+
+        .generate-btn {
+            padding: 18px 35px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 400;
+            font-family: 'Georgia', serif;
+            letter-spacing: 0.5px;
+            border-radius: 2px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .generate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .generate-btn:hover {
+            background: linear-gradient(135deg, #2a2a2a 0%, #111 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .generate-btn:hover::before {
+            left: 100%;
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .canvas-container {
+            border: 3px solid #1a1a1a;
+            background: white;
+            position: relative;
+            margin: 30px 0;
+            border-radius: 3px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .canvas-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0, #f0f0f0);
+            z-index: -1;
+            border-radius: 5px;
+        }
+
+        canvas {
+            display: block;
+            background: white;
+        }
+
+        .download-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .download-btn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Georgia', serif;
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #2a2a2a 0%, #111 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .unique-message {
+            font-size: 1rem;
+            text-align: center;
+            max-width: 500px;
+            line-height: 1.6;
+            opacity: 0.9;
+            font-style: italic;
+            font-weight: 300;
+            color: #333;
+        }
+
+        .filename {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kök Şifresi</h1>
+        <p class="subtitle">
+            Algoritma, doğanın gizli dilini taklit ederken, kök sistemleri zamanın derinliklerinde kaybolur. 
+            Her yaratım, dijital ruhun organik formlarla dansıdır. Kaos ve düzen arasında, 
+            sanat kendi gerçeğini yazar.
+        </p>
+
+        <div class="input-section">
+            <input type="text" id="seedInput" placeholder="Bir kelime, isim, tarih, koordinat..." maxlength="100">
+            <button class="generate-btn" onclick="generateTree()">Kökleri Sal</button>
+        </div>
+
+    <a href="#" class="github-btn" onclick="openGithub()" title="GitHub'da görüntüle">
+        <svg class="github-icon" viewBox="0 0 24 24">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+    </a>
+
+    <button class="info-btn" onclick="toggleModal()" title="Ne yapıyoruz burada?">?</button>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <h3>Ne Yapıyoruz Burada?</h3>
+            <p>Bu, sanat ve teknolojinin kesişim noktasında yaratılmış dijital bir deneyim. Her kelime, rakam ya da ifade girdiğinizde, algoritma o girdiyi benzersiz bir tohum olarak kullanarak organik bir ağaç yaratıyor.</p>
+            <p>Kökler, parmak izi gibi eşsiz bir karmaşıklık sergiliyor. Aynı kelimeleri tekrar yazsanız bile, zaman damgası ve rastgelelik faktörleri sayesinde her yaratım bir öncekinden tamamen farklı oluyor.</p>
+            <p>Doğanın kaotik güzelliği ile bilgisayar algoritmasının deterministik mantığı buluşuyor. Sonuç? Size özel, bir daha asla tekrarlanamayacak dijital bir sanat eseri.</p>
+            <p>Her ağaç, modern zamanın ruhunu taşıyan, eski doğa bilgeliğiyle kodlanmış bir metafor.</p>
+        </div>
+    </div>
+
+        <div class="canvas-container">
+            <canvas id="treeCanvas" width="800" height="600"></canvas>
+        </div>
+
+        <div class="download-section" id="downloadSection">
+            <div class="unique-message">
+                Her yaratım bir kerelik. Tekrarı yok, kopyası yok. Dijital parmak izi.
+            </div>
+            <div class="filename" id="filename"></div>
+            <button class="download-btn" onclick="downloadImage()">PNG Olarak İndir</button>
+        </div>
+    </div>
+
+    <script>
+        let currentFilename = '';
+        let canvas, ctx;
+
+        // SHA-256 benzeri hash fonksiyonu
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // 32-bit integer
+            }
+            return Math.abs(hash);
+        }
+
+        // Deterministik rastgele sayı üreticisi
+        class SeededRandom {
+            constructor(seed) {
+                this.seed = seed % 2147483647;
+                if (this.seed <= 0) this.seed += 2147483646;
+            }
+
+            next() {
+                this.seed = (this.seed * 16807) % 2147483647;
+                return (this.seed - 1) / 2147483646;
+            }
+        }
+
+        // Benzersiz dosya adı oluşturucu
+        function generateUniqueFilename(seed) {
+            const rng = new SeededRandom(simpleHash(seed + 'filename'));
+            const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            let filename = '';
+            for (let i = 0; i < 14; i++) {
+                filename += chars[Math.floor(rng.next() * chars.length)];
+            }
+            return filename + '.png';
+        }
+
+        function generateTree() {
+            const input = document.getElementById('seedInput').value.trim();
+            if (!input) {
+                alert('Lütfen bir değer girin!');
+                return;
+            }
+
+            canvas = document.getElementById('treeCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Canvas'ı temizle
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Her seferinde farklı olması için timestamp ekle
+            const uniqueSeed = input + Date.now() + Math.random();
+            const mainSeed = simpleHash(uniqueSeed);
+            const rng = new SeededRandom(mainSeed);
+
+            // Ağaç gövdesi
+            drawTrunk(rng);
+            
+            // Kökler - çok karmaşık ve benzersiz
+            drawComplexRoots(rng);
+
+            // Dosya adını oluştur ve göster - her seferinde farklı
+            currentFilename = generateUniqueFilename(uniqueSeed);
+            document.getElementById('filename').textContent = currentFilename;
+            document.getElementById('downloadSection').style.display = 'flex';
+        }
+
+        function drawTrunk(rng) {
+            ctx.strokeStyle = 'black';
+            ctx.fillStyle = 'black';
+            
+            // Ana gövde
+            const trunkWidth = 15 + rng.next() * 10;
+            const trunkHeight = 120 + rng.next() * 80;
+            const trunkX = canvas.width / 2;
+            const trunkY = canvas.height - 50;
+
+            // Gövde çiz
+            ctx.beginPath();
+            ctx.rect(trunkX - trunkWidth/2, trunkY - trunkHeight, trunkWidth, trunkHeight);
+            ctx.fill();
+
+            // Dallar
+            drawBranches(rng, trunkX, trunkY - trunkHeight, 8, -Math.PI/2, trunkWidth);
+        }
+
+        function drawBranches(rng, x, y, length, angle, width) {
+            if (length < 2 || width < 1) return;
+
+            const endX = x + Math.cos(angle) * length * 8;
+            const endY = y + Math.sin(angle) * length * 8;
+
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            if (length > 3) {
+                const branches = 2 + Math.floor(rng.next() * 3);
+                for (let i = 0; i < branches; i++) {
+                    const newAngle = angle + (rng.next() - 0.5) * Math.PI * 0.8;
+                    const newLength = length * (0.6 + rng.next() * 0.3);
+                    const newWidth = width * 0.7;
+                    drawBranches(rng, endX, endY, newLength, newAngle, newWidth);
+                }
+            }
+        }
+
+        function drawComplexRoots(rng) {
+            ctx.strokeStyle = 'black';
+            const rootStartY = canvas.height - 50;
+            const centerX = canvas.width / 2;
+
+            // Ana kök sistemleri
+            const mainRoots = 8 + Math.floor(rng.next() * 12);
+            
+            for (let i = 0; i < mainRoots; i++) {
+                const angle = (rng.next() - 0.5) * Math.PI * 1.5 + Math.PI/2;
+                const startX = centerX + (rng.next() - 0.5) * 60;
+                const length = 40 + rng.next() * 80;
+                const width = 3 + rng.next() * 5;
+                
+                drawRootSystem(rng, startX, rootStartY, angle, length, width, 0);
+            }
+
+            // Ek karmaşık kök ağı
+            for (let i = 0; i < 200 + Math.floor(rng.next() * 300); i++) {
+                const startX = rng.next() * canvas.width;
+                const startY = rootStartY + rng.next() * (canvas.height - rootStartY);
+                const endX = rng.next() * canvas.width;
+                const endY = rootStartY + rng.next() * (canvas.height - rootStartY);
+                
+                // Karmaşık kök bağlantıları
+                if (Math.abs(startX - endX) < 200 && Math.abs(startY - endY) < 100) {
+                    ctx.lineWidth = 0.5 + rng.next() * 2;
+                    ctx.beginPath();
+                    
+                    // Eğimli kökler için bezier curve
+                    const cpX1 = startX + (rng.next() - 0.5) * 100;
+                    const cpY1 = startY + (rng.next() - 0.5) * 50;
+                    const cpX2 = endX + (rng.next() - 0.5) * 100;
+                    const cpY2 = endY + (rng.next() - 0.5) * 50;
+                    
+                    ctx.moveTo(startX, startY);
+                    ctx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, endX, endY);
+                    ctx.stroke();
+                }
+            }
+
+            // Çok ince kılcal kökler - parmak izi detayı
+            for (let i = 0; i < 1000 + Math.floor(rng.next() * 500); i++) {
+                const x1 = rng.next() * canvas.width;
+                const y1 = rootStartY + rng.next() * (canvas.height - rootStartY);
+                const length = 5 + rng.next() * 25;
+                const angle = rng.next() * Math.PI * 2;
+                const x2 = x1 + Math.cos(angle) * length;
+                const y2 = y1 + Math.sin(angle) * length;
+                
+                if (x2 >= 0 && x2 <= canvas.width && y2 >= rootStartY && y2 <= canvas.height) {
+                    ctx.lineWidth = 0.2 + rng.next() * 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function drawRootSystem(rng, x, y, angle, length, width, depth) {
+            if (length < 3 || width < 0.5 || depth > 6) return;
+
+            const endX = x + Math.cos(angle) * length;
+            const endY = y + Math.sin(angle) * length;
+
+            // Canvas sınırları kontrolü
+            if (endX < 0 || endX > canvas.width || endY > canvas.height) return;
+
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            // Alt kökler
+            if (length > 5) {
+                const subRoots = 2 + Math.floor(rng.next() * 4);
+                for (let i = 0; i < subRoots; i++) {
+                    const newAngle = angle + (rng.next() - 0.5) * Math.PI * 0.9;
+                    const newLength = length * (0.5 + rng.next() * 0.4);
+                    const newWidth = width * (0.6 + rng.next() * 0.3);
+                    drawRootSystem(rng, endX, endY, newAngle, newLength, newWidth, depth + 1);
+                }
+            }
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = currentFilename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Enter tuşu ile generate
+        document.getElementById('seedInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateTree();
+            }
+        });
+
+        function toggleModal() {
+            const overlay = document.getElementById('modalOverlay');
+            const modal = overlay.querySelector('.modal');
+            
+            if (overlay.style.display === 'flex') {
+                // Kapatma
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            } else {
+                // Açma
+                overlay.style.display = 'flex';
+                setTimeout(() => {
+                    modal.classList.add('show');
+                }, 10);
+            }
+        }
+
+        function openModal() {
+            const overlay = document.getElementById('modalOverlay');
+            const modal = overlay.querySelector('.modal');
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modalOverlay');
+            const modal = overlay.querySelector('.modal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
+
+        function openGithub() {
+            // Sen linki buraya ekleyeceksin
+            alert('GitHub linki eklenecek!');
+        }
+
+        // ESC ile modal kapatma
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
